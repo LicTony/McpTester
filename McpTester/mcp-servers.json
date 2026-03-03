@@ -4,6 +4,18 @@
       "transport": "stdio",
       "command": "C:\\_ArchivosDeProgramaTony\\_TonysMcpsServer\\TonysMcpTools\\TonysMcpTools.exe",
       "args": []
+    },
+    "Filesystem": {
+      "transport": "stdio",
+      "command": "mcp-server-filesystem.cmd",
+      "args": [
+        "C:\\_Tony\\CS\\McpTester"
+      ]
+    },
+    "Everything": {
+      "transport": "stdio",
+      "command": "mcp-server-everything.cmd",
+      "args": []
     }
   }
 }

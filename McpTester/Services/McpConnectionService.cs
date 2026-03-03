@@ -30,7 +30,8 @@ public class McpConnectionService : IDisposable
 
         var clientOptions = new McpClientOptions
         {
-            ClientInfo = new Implementation { Name = "McpTester", Version = "1.0.0" }
+            ClientInfo = new Implementation { Name = "McpTester", Version = "1.0.0" },
+            InitializationTimeout = TimeSpan.FromSeconds(60)
         };
 
         var client = await McpClientFactory.CreateAsync(serverConfig, clientOptions);
@@ -50,7 +51,8 @@ public class McpConnectionService : IDisposable
 
         var clientOptions = new McpClientOptions
         {
-            ClientInfo = new Implementation { Name = "McpTester", Version = "1.0.0" }
+            ClientInfo = new Implementation { Name = "McpTester", Version = "1.0.0" },
+            InitializationTimeout = TimeSpan.FromSeconds(60)
         };
 
         var client = await McpClientFactory.CreateAsync(serverConfig, clientOptions);
