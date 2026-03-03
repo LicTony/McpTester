@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "TonysMcpTools": {
+      "transport": "stdio",
+      "command": "C:\\_ArchivosDeProgramaTony\\_TonysMcpsServer\\TonysMcpTools\\TonysMcpTools.exe",
+      "args": []
+    }
+  }
+}
