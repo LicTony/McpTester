@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -69,7 +71,8 @@ public partial class MainViewModel : ObservableObject
         {
             ToolSchemaJson = JsonSerializer.Serialize(value.InputSchema, new JsonSerializerOptions 
             { 
-                WriteIndented = true 
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             });
         }
         catch
@@ -183,10 +186,39 @@ public partial class MainViewModel : ObservableObject
             var result = await _mcp.CallToolAsync(SelectedServer.Name, SelectedTool.Name, args);
             sw.Stop();
 
-            ResultJson = JsonSerializer.Serialize(result, new JsonSerializerOptions
+            var options = new JsonSerializerOptions
             {
-                WriteIndented = true
-            });
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
+            // Convertimos el resultado a un JsonNode para poder manipularlo dinámicamente
+            var resultNode = JsonSerializer.SerializeToNode(result, options);
+            
+            if (resultNode is JsonObject resultObj && resultObj.TryGetPropertyValue("content", out var contentNode) && contentNode is JsonArray contentArray)
+            {
+                foreach (var item in contentArray)
+                {
+                    if (item is JsonObject itemObj && itemObj.TryGetPropertyValue("type", out var typeNode) && typeNode?.ToString() == "text" 
+                        && itemObj.TryGetPropertyValue("text", out var textNode) && textNode is JsonValue textVal)
+                    {
+                        string? rawText = textVal.GetValue<string>();
+                        if (!string.IsNullOrWhiteSpace(rawText))
+                        {
+                            try
+                            {
+                                // Si el texto es un JSON válido, lo reemplazamos por el objeto JSON real
+                                // Esto evita que se serialice como una cadena escapada
+                                var nestedJson = JsonNode.Parse(rawText);
+                                itemObj["text"] = nestedJson;
+                            }
+                            catch { /* No es JSON, lo dejamos como está */ }
+                        }
+                    }
+                }
+            }
+
+            ResultJson = resultNode?.ToJsonString(options) ?? "";
             StatusText = $"✅ OK — {sw.ElapsedMilliseconds} ms";
             AppendLog($"← ✅ OK ({sw.ElapsedMilliseconds} ms)");
         }
