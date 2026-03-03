@@ -22,9 +22,11 @@ public partial class MainViewModel : ObservableObject
     private ObservableCollection<ServerViewModel> _servers = new();
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ExecuteToolCommand))]
     private ServerViewModel? _selectedServer;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ExecuteToolCommand))]
     private Tool? _selectedTool;
 
     [ObservableProperty]
@@ -48,16 +50,32 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _toolName = "";
 
+    [ObservableProperty]
+    private string _toolSchemaJson = "";
+
     partial void OnSelectedToolChanged(Tool? value)
     {
         if (value is null)
         {
             ToolName = "";
             ToolDescription = "";
+            ToolSchemaJson = "";
             return;
         }
         ToolName = value.Name;
         ToolDescription = value.Description ?? "(Sin descripción)";
+        
+        try
+        {
+            ToolSchemaJson = JsonSerializer.Serialize(value.InputSchema, new JsonSerializerOptions 
+            { 
+                WriteIndented = true 
+            });
+        }
+        catch
+        {
+            ToolSchemaJson = "{}";
+        }
     }
 
     private void AppendLog(string message)
@@ -186,5 +204,5 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    private bool CanExecuteTool() => SelectedTool is not null && !IsExecuting;
+    private bool CanExecuteTool() => SelectedTool is not null && SelectedServer is not null && !IsExecuting;
 }

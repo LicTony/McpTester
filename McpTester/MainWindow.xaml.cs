@@ -25,15 +25,21 @@ public partial class MainWindow : Window
             _vm.ParameterJson = ParamEditor.Text;
         };
 
-        // Configurar AvalonEdit: resultado (readonly)
+        // Configurar AvalonEdit: resultado y esquema (readonly)
         ResultEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("JavaScript");
+        SchemaEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("JavaScript");
 
-        // Sincronizar ResultJson → ResultEditor
+        // Sincronizar ViewModel → Editores
         _vm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(MainViewModel.ResultJson))
             {
                 ResultEditor.Text = _vm.ResultJson;
+            }
+
+            if (e.PropertyName == nameof(MainViewModel.ToolSchemaJson))
+            {
+                SchemaEditor.Text = _vm.ToolSchemaJson;
             }
 
             // Scroll automático del log

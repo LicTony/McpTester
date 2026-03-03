@@ -239,27 +239,39 @@
                             Style="{StaticResource ExecuteButton}"
                             Command="{Binding ExecuteToolCommand}"
                             HorizontalAlignment="Stretch"
-                            Margin="0,10,0,0"
-                            IsEnabled="{Binding IsExecuting, Converter={StaticResource BooleanToInverseConverter}}"/>
+                            Margin="0,10,0,0" />
 
-                    <!-- Label parámetros -->
-                    <TextBlock DockPanel.Dock="Top"
-                               Text="PARÁMETROS (JSON)"
-                               Foreground="#6C7086"
-                               FontWeight="Bold" FontSize="11"
-                               Margin="0,0,0,6"/>
+                    <!-- TabControl para separar argumentos y esquema -->
+                    <TabControl Background="Transparent" BorderThickness="0" Margin="0,5,0,0">
+                        <TabItem Header="Argumentos">
+                            <Border BorderBrush="#313244" BorderThickness="1" CornerRadius="0,0,5,5" Margin="0,-1,0,0">
+                                <avalonEdit:TextEditor
+                                    x:Name="ParamEditor"
+                                    FontFamily="Consolas"
+                                    FontSize="13"
+                                    ShowLineNumbers="True"
+                                    Background="#181825"
+                                    Foreground="#CDD6F4"
+                                    Padding="4"
+                                    Height="350"/>
+                            </Border>
+                        </TabItem>
 
-                    <!-- AvalonEdit: editor de parámetros -->
-                    <Border BorderBrush="#313244" BorderThickness="1" CornerRadius="5">
-                        <avalonEdit:TextEditor
-                            x:Name="ParamEditor"
-                            FontFamily="Consolas"
-                            FontSize="13"
-                            ShowLineNumbers="True"
-                            Background="#181825"
-                            Foreground="#CDD6F4"
-                            Padding="4"/>
-                    </Border>
+                        <TabItem Header="Esquema Técnico">
+                            <Border BorderBrush="#313244" BorderThickness="1" CornerRadius="0,0,5,5" Margin="0,-1,0,0">
+                                <avalonEdit:TextEditor
+                                    x:Name="SchemaEditor"
+                                    FontFamily="Consolas"
+                                    FontSize="12"
+                                    ShowLineNumbers="True"
+                                    IsReadOnly="True"
+                                    Background="#181825"
+                                    Foreground="#A6ADC8"
+                                    Padding="4"
+                                    Height="350"/>
+                            </Border>
+                        </TabItem>
+                    </TabControl>
                 </DockPanel>
             </Border>
 
