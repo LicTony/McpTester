@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Encodings.Web;
@@ -55,8 +56,19 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _toolSchemaJson = "";
 
+    /// <summary>Campos del formulario dinámico generados desde el inputSchema.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasFormFields))]
+    private ObservableCollection<ToolParameterField> _formFields = new();
+
+    /// <summary>True cuando hay campos de formulario disponibles para la tool seleccionada.</summary>
+    public bool HasFormFields => FormFields.Count > 0;
+
     partial void OnSelectedToolChanged(Tool? value)
     {
+        FormFields.Clear();
+        OnPropertyChanged(nameof(HasFormFields));
+
         if (value is null)
         {
             ToolName = "";
@@ -64,13 +76,14 @@ public partial class MainViewModel : ObservableObject
             ToolSchemaJson = "";
             return;
         }
+
         ToolName = value.Name;
         ToolDescription = value.Description ?? "(Sin descripción)";
-        
+
         try
         {
-            ToolSchemaJson = JsonSerializer.Serialize(value.InputSchema, new JsonSerializerOptions 
-            { 
+            ToolSchemaJson = JsonSerializer.Serialize(value.InputSchema, new JsonSerializerOptions
+            {
                 WriteIndented = true,
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             });
@@ -78,6 +91,20 @@ public partial class MainViewModel : ObservableObject
         catch
         {
             ToolSchemaJson = "{}";
+        }
+
+        // Generar campos del formulario dinámico
+        try
+        {
+            var fields = ToolFormBuilder.BuildFields(value.InputSchema);
+            foreach (var f in fields)
+                FormFields.Add(f);
+                
+            OnPropertyChanged(nameof(HasFormFields));
+        }
+        catch
+        {
+            // Si el schema no es parseable, el formulario queda vacío → se usa JSON raw
         }
     }
 
@@ -171,15 +198,25 @@ public partial class MainViewModel : ObservableObject
         try
         {
             Dictionary<string, object?> args;
-            try
+
+            if (HasFormFields)
             {
-                args = JsonSerializer.Deserialize<Dictionary<string, object?>>(ParameterJson)
-                       ?? new Dictionary<string, object?>();
+                // Recolectar valores del formulario dinámico
+                args = ToolFormBuilder.CollectValues(FormFields);
             }
-            catch (JsonException)
+            else
             {
-                StatusText = "❌ JSON de parámetros inválido.";
-                return;
+                // Fallback: usar el editor JSON raw
+                try
+                {
+                    args = JsonSerializer.Deserialize<Dictionary<string, object?>>(ParameterJson)
+                           ?? new Dictionary<string, object?>();
+                }
+                catch (JsonException)
+                {
+                    StatusText = "❌ JSON de parámetros inválido.";
+                    return;
+                }
             }
 
             AppendLog($"→ {SelectedServer.Name}/{SelectedTool.Name}");

@@ -47,6 +47,13 @@ public partial class MainWindow : Window
             {
                 LogScrollViewer.ScrollToEnd();
             }
+
+            // Auto-seleccionar pestaña según disponibilidad del formulario dinámico
+            if (e.PropertyName == nameof(MainViewModel.HasFormFields))
+            {
+                // Índice 0 = Formulario, Índice 1 = Argumentos (JSON), Índice 2 = Esquema Técnico
+                ParamTabControl.SelectedIndex = _vm.HasFormFields ? 0 : 1;
+            }
         };
     }
 

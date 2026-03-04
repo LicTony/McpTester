@@ -16,10 +16,6 @@
       "transport": "stdio",
       "command": "mcp-server-everything.cmd",
       "args": []
-    },
-    "EjemploRemotoHTTP": {
-      "transport": "sse",
-      "url": "http://localhost:3000/sse"
     }
   }
 }

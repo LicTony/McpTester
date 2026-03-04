@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
         xmlns:vm="clr-namespace:McpTester.ViewModels"
+        xmlns:conv="clr-namespace:McpTester.Converters"
         Title="MCP Tester" Height="720" Width="1280"
         MinHeight="600" MinWidth="1000"
         WindowState="Maximized"
@@ -88,6 +89,94 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!-- DataTemplates para el formulario dinámico      -->
+        <!-- ══════════════════════════════════════════════ -->
+
+        <!-- TextBox: tipos string / integer / number -->
+        <DataTemplate x:Key="FieldTextTemplate">
+            <StackPanel Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                    <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="#CDD6F4"
+                               Text="{Binding Label}"/>
+                    <TextBlock FontSize="11" Foreground="#6C7086" Margin="8,0,0,0"
+                               Text="{Binding Description}"
+                               ToolTip="{Binding Description}"
+                               TextTrimming="CharacterEllipsis" MaxWidth="260"/>
+                </StackPanel>
+                <TextBox Text="{Binding TextValue, UpdateSourceTrigger=PropertyChanged}"
+                         Background="#181825" Foreground="#CDD6F4"
+                         BorderBrush="#45475A" BorderThickness="1"
+                         Padding="6,4" FontFamily="Consolas" FontSize="13"
+                         ToolTip="{Binding Description}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- TextBox multilinea: tipos array / object -->
+        <DataTemplate x:Key="FieldMultilineTemplate">
+            <StackPanel Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                    <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="#CDD6F4"
+                               Text="{Binding Label}"/>
+                    <TextBlock FontSize="10" Foreground="#89B4FA" Margin="6,0,0,0"
+                               Text="[JSON]"/>
+                    <TextBlock FontSize="11" Foreground="#6C7086" Margin="8,0,0,0"
+                               Text="{Binding Description}"
+                               TextTrimming="CharacterEllipsis" MaxWidth="240"/>
+                </StackPanel>
+                <TextBox Text="{Binding TextValue, UpdateSourceTrigger=PropertyChanged}"
+                         Background="#181825" Foreground="#CDD6F4"
+                         BorderBrush="#45475A" BorderThickness="1"
+                         Padding="6,4" FontFamily="Consolas" FontSize="12"
+                         AcceptsReturn="True" TextWrapping="Wrap"
+                         Height="80" VerticalScrollBarVisibility="Auto"
+                         ToolTip="{Binding Description}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- CheckBox: tipo boolean -->
+        <DataTemplate x:Key="FieldBoolTemplate">
+            <StackPanel Margin="0,0,0,10">
+                <CheckBox IsChecked="{Binding BoolValue, UpdateSourceTrigger=PropertyChanged}"
+                          Foreground="#CDD6F4" FontSize="13"
+                          ToolTip="{Binding Description}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontWeight="SemiBold" Text="{Binding Label}" FontSize="12"/>
+                        <TextBlock Foreground="#6C7086" Margin="8,0,0,0" FontSize="11"
+                                   Text="{Binding Description}"
+                                   TextTrimming="CharacterEllipsis" MaxWidth="260"/>
+                    </StackPanel>
+                </CheckBox>
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- ComboBox: tipo enum -->
+        <DataTemplate x:Key="FieldEnumTemplate">
+            <StackPanel Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                    <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="#CDD6F4"
+                               Text="{Binding Label}"/>
+                    <TextBlock FontSize="11" Foreground="#6C7086" Margin="8,0,0,0"
+                               Text="{Binding Description}"
+                               TextTrimming="CharacterEllipsis" MaxWidth="260"/>
+                </StackPanel>
+                <ComboBox ItemsSource="{Binding EnumValues}"
+                          SelectedItem="{Binding SelectedEnumValue, UpdateSourceTrigger=PropertyChanged}"
+                          Background="#181825" Foreground="#CDD6F4"
+                          BorderBrush="#45475A" BorderThickness="1"
+                          Padding="6,4" FontSize="13"
+                          ToolTip="{Binding Description}"/>
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- TemplateSelector que enruta según FieldType -->
+        <conv:ToolFieldTemplateSelector x:Key="FieldSelector"
+            TextTemplate="{StaticResource FieldTextTemplate}"
+            BoolTemplate="{StaticResource FieldBoolTemplate}"
+            EnumTemplate="{StaticResource FieldEnumTemplate}"
+            MultilineTemplate="{StaticResource FieldMultilineTemplate}"/>
+
     </Window.Resources>
 
     <DockPanel>
@@ -242,9 +331,57 @@
                             HorizontalAlignment="Stretch"
                             Margin="0,10,0,0" />
 
-                    <!-- TabControl para separar argumentos y esquema -->
-                    <TabControl Background="Transparent" BorderThickness="0" Margin="0,5,0,0">
-                        <TabItem Header="Argumentos">
+                    <!-- TabControl para separar formulario, argumentos y esquema -->
+                    <TabControl x:Name="ParamTabControl"
+                                Background="Transparent" BorderThickness="0" Margin="0,5,0,0">
+
+                        <!-- ── PESTAÑA FORMULARIO (Fase 2) ── -->
+                        <TabItem Header="Formulario">
+                            <Border BorderBrush="#313244" BorderThickness="1"
+                                    CornerRadius="0,0,5,5" Margin="0,-1,0,0"
+                                    Background="#181825">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled"
+                                              Padding="12,10">
+                                    <StackPanel>
+                                        <!-- Mensaje cuando no hay schema -->
+                                        <TextBlock Foreground="#6C7086" FontSize="12"
+                                                   FontStyle="Italic"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,10">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasFormFields}" Value="False">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                            Seleccione una tool para ver su formulario, o use la pestaña "Argumentos" para ingresar JSON manualmente.
+                                        </TextBlock>
+
+                                        <!-- Campos generados dinámicamente -->
+                                        <ItemsControl ItemsSource="{Binding FormFields}"
+                                                      ItemTemplateSelector="{StaticResource FieldSelector}">
+                                            <ItemsControl.Style>
+                                                <Style TargetType="ItemsControl">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasFormFields}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ItemsControl.Style>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Border>
+                        </TabItem>
+
+                        <!-- ── PESTAÑA ARGUMENTOS JSON RAW ── -->
+                        <TabItem Header="Argumentos (JSON)">
                             <Border BorderBrush="#313244" BorderThickness="1" CornerRadius="0,0,5,5" Margin="0,-1,0,0">
                                 <avalonEdit:TextEditor
                                     x:Name="ParamEditor"
@@ -258,6 +395,7 @@
                             </Border>
                         </TabItem>
 
+                        <!-- ── PESTAÑA ESQUEMA TÉCNICO ── -->
                         <TabItem Header="Esquema Técnico">
                             <Border BorderBrush="#313244" BorderThickness="1" CornerRadius="0,0,5,5" Margin="0,-1,0,0">
                                 <avalonEdit:TextEditor
@@ -272,6 +410,7 @@
                                     Height="350"/>
                             </Border>
                         </TabItem>
+
                     </TabControl>
                 </DockPanel>
             </Border>
