@@ -9,6 +9,10 @@
         WindowState="Maximized"
         Background="#1E1E2E" Foreground="#CDD6F4">
 
+    <Window.InputBindings>
+        <KeyBinding Key="Enter" Modifiers="Alt" Command="{Binding ExecuteToolCommand}" />
+    </Window.InputBindings>
+
     <Window.Resources>
         <!-- Paleta Catppuccin Mocha -->
         <SolidColorBrush x:Key="BgBase"     Color="#1E1E2E"/>
@@ -325,7 +329,8 @@
                     <!-- Botón ejecutar -->
                     <Button DockPanel.Dock="Bottom"
                             x:Name="BtnExecute"
-                            Content="▶  EJECUTAR"
+                            Content="▶  EJECUTAR (Alt+Enter)"
+                            ToolTip="Presiona Alt+Enter para ejecutar la herramienta"
                             Style="{StaticResource ExecuteButton}"
                             Command="{Binding ExecuteToolCommand}"
                             HorizontalAlignment="Stretch"
