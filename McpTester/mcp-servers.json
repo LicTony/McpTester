@@ -12,10 +12,13 @@
         "C:\\_Tony\\CS\\McpTester"
       ]
     },
-    "Everything": {
-      "transport": "stdio",
-      "command": "mcp-server-everything.cmd",
-      "args": []
+    "Everything-Http": {
+      "transport": "streamableHttp",
+      "url": "http://localhost:3001/mcp"
+    },
+    "Everything-SSE": {
+      "transport": "sse",
+      "url": "http://localhost:3001/sse"
     }
   }
 }

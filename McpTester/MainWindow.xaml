@@ -4,7 +4,7 @@
         xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
         xmlns:vm="clr-namespace:McpTester.ViewModels"
         xmlns:conv="clr-namespace:McpTester.Converters"
-        Title="MCP Tester" Height="720" Width="1280"
+        Title="MCP Tester v 1.0.0" Height="720" Width="1280"
         MinHeight="600" MinWidth="1000"
         WindowState="Maximized"
         Background="#1E1E2E" Foreground="#CDD6F4">

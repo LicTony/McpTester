@@ -13,7 +13,7 @@ using CommunityToolkit.Mvvm.Input;
 using McpTester.Models;
 using McpTester.Services;
 using Microsoft.Win32;
-using McpDotNet.Protocol.Types;
+using ModelContextProtocol.Protocol;
 
 namespace McpTester.ViewModels;
 
@@ -151,10 +151,10 @@ public partial class MainViewModel : ObservableObject
                 {
                     AppendLog($"Conectando a '{name}'...");
 
-                    if (serverConfig.GetTransportType() == TransportType.Sse)
-                        await _mcp.ConnectSseAsync(name, serverConfig);
-                    else
+                    if (serverConfig.GetTransportType() == TransportType.Stdio)
                         await _mcp.ConnectStdioAsync(name, serverConfig);
+                    else
+                        await _mcp.ConnectSseAsync(name, serverConfig);
 
                     var tools = await _mcp.ListToolsAsync(name);
                     Servers.Add(new ServerViewModel(name, tools));

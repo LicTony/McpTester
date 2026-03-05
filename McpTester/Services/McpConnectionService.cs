@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using McpTester.Models;
-using McpDotNet.Client;
-using McpDotNet.Protocol.Transport;
-using McpDotNet.Protocol.Types;
-using McpDotNet.Configuration;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 
@@ -13,49 +11,45 @@ namespace McpTester.Services;
 
 public class McpConnectionService : IDisposable
 {
-    private readonly Dictionary<string, IMcpClient> _clients = new();
+    private readonly Dictionary<string, McpClient> _clients = new();
 
-    public IReadOnlyDictionary<string, IMcpClient> Clients => _clients;
+    public IReadOnlyDictionary<string, McpClient> Clients => _clients;
 
-    public async Task<IMcpClient> ConnectStdioAsync(string name, ServerConfig config)
+    public async Task<McpClient> ConnectStdioAsync(string name, ServerConfig config)
     {
-        var serverConfig = new McpServerConfig
+        var transportOptions = new StdioClientTransportOptions
         {
-            Id = Guid.NewGuid().ToString(),
-            Name = name,
-            TransportType = "stdio",
-            Location = config.Command,
-            Arguments = config.Args ?? Array.Empty<string>()
+            Command = config.Command,
+            Arguments = config.Args ?? Array.Empty<string>(),
+            EnvironmentVariables = config.EnvVars?.ToDictionary(k => k.Key, k => (string?)k.Value)
         };
+        var transport = new StdioClientTransport(transportOptions);
 
         var clientOptions = new McpClientOptions
         {
-            ClientInfo = new Implementation { Name = "McpTester", Version = "1.0.0" },
-            InitializationTimeout = TimeSpan.FromSeconds(60)
+            ClientInfo = new Implementation { Name = "McpTester", Version = "1.0.0" }
         };
 
-        var client = await McpClientFactory.CreateAsync(serverConfig, clientOptions);
+        var client = await McpClient.CreateAsync(transport, clientOptions);
         _clients[name] = client;
         return client;
     }
 
-    public async Task<IMcpClient> ConnectSseAsync(string name, ServerConfig config)
+    public async Task<McpClient> ConnectSseAsync(string name, ServerConfig config)
     {
-        var serverConfig = new McpServerConfig
+        var transportOptions = new HttpClientTransportOptions
         {
-            Id = Guid.NewGuid().ToString(),
-            Name = name,
-            TransportType = "sse",
-            Location = config.Url
+            Endpoint = new Uri(config.Url ?? throw new ArgumentNullException(nameof(config.Url))),
+            TransportMode = config.GetTransportType() == TransportType.Sse ? HttpTransportMode.Sse : HttpTransportMode.StreamableHttp
         };
-
+        var transport = new HttpClientTransport(transportOptions);
+        
         var clientOptions = new McpClientOptions
         {
-            ClientInfo = new Implementation { Name = "McpTester", Version = "1.0.0" },
-            InitializationTimeout = TimeSpan.FromSeconds(60)
+            ClientInfo = new Implementation { Name = "McpTester", Version = "1.0.0" }
         };
 
-        var client = await McpClientFactory.CreateAsync(serverConfig, clientOptions);
+        var client = await McpClient.CreateAsync(transport, clientOptions);
         _clients[name] = client;
         return client;
     }
@@ -65,15 +59,11 @@ public class McpConnectionService : IDisposable
         if (!_clients.TryGetValue(serverName, out var client))
             throw new InvalidOperationException($"Server '{serverName}' no está conectado.");
 
-        var tools = new List<Tool>();
-        await foreach (var tool in client.ListToolsAsync())
-        {
-            tools.Add(tool);
-        }
-        return tools;
+        var response = await client.ListToolsAsync();
+        return response.Select(t => t.ProtocolTool).ToList();
     }
 
-    public async Task<CallToolResponse> CallToolAsync(
+    public async Task<CallToolResult> CallToolAsync(
         string serverName,
         string toolName,
         Dictionary<string, object?> args)
@@ -81,15 +71,19 @@ public class McpConnectionService : IDisposable
         if (!_clients.TryGetValue(serverName, out var client))
             throw new InvalidOperationException($"Server '{serverName}' no está conectado.");
 
-        // Convert Dictionary<string, object?> to Dictionary<string, object> to match API nulability
-        var nonNullableArgs = args.ToDictionary(k => k.Key, v => v.Value ?? new object());
-        return await client.CallToolAsync(toolName, nonNullableArgs);
+        // CallToolAsync might take a Dictionary<string, object?> or a specific options class
+        var callArgs = args.ToDictionary(k => k.Key, v => System.Text.Json.JsonSerializer.SerializeToElement(v.Value ?? new object()));
+        var param = new CallToolRequestParams { Name = toolName, Arguments = callArgs };
+        return await client.CallToolAsync(param);
     }
 
     public void DisconnectAll()
     {
-        // IMcpClient might not be IDisposable, but we can clear the dictionary.
-        // If the library provides a way to close connections, it should be called here.
+        foreach (var client in _clients.Values)
+        {
+            if (client is IAsyncDisposable asyncDisposable)
+                asyncDisposable.DisposeAsync().GetAwaiter().GetResult();
+        }
         _clients.Clear();
     }
 

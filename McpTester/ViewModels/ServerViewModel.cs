@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using McpDotNet.Protocol.Types;
+using ModelContextProtocol.Protocol;
 
 namespace McpTester.ViewModels;
 

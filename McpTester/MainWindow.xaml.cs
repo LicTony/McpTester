@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using ICSharpCode.AvalonEdit.Highlighting;
 using McpTester.ViewModels;
-using McpDotNet.Protocol.Types;
+using ModelContextProtocol.Protocol;
 
 namespace McpTester;
 

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Encodings.Web;
-using McpDotNet.Protocol.Types;
 using McpTester.Models;
 
 namespace McpTester.Services;
@@ -20,27 +19,17 @@ public static class ToolFormBuilder
 
     /// <summary>
     /// Construye la lista de campos del formulario a partir del inputSchema de la tool.
-    /// Recibe el tipo McpDotNet.Protocol.Types.JsonSchema y lo convierte internamente a JsonElement.
+    /// Recibe directamente un JsonElement del SDK de ModelContextProtocol.
     /// Retorna lista vacía si el schema no tiene "properties".
     /// </summary>
-    public static IList<ToolParameterField> BuildFields(JsonSchema? inputSchema)
+    public static IList<ToolParameterField> BuildFields(JsonElement? inputSchema)
     {
         var fields = new List<ToolParameterField>();
 
         if (inputSchema is null)
             return fields;
 
-        // Convertir JsonSchema → JsonElement para poder navegar sus nodos genéricamente
-        JsonElement schema;
-        try
-        {
-            var json = JsonSerializer.Serialize(inputSchema, _jsonOpts);
-            schema = JsonDocument.Parse(json).RootElement;
-        }
-        catch
-        {
-            return fields;
-        }
+        JsonElement schema = inputSchema.Value;
 
         // Leer "required" → HashSet para lookup O(1)
         var required = new HashSet<string>();

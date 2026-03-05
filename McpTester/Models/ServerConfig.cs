@@ -6,7 +6,8 @@ namespace McpTester.Models;
 public enum TransportType
 {
     Stdio,
-    Sse
+    Sse,
+    StreamableHttp
 }
 
 public class ServerConfig
@@ -24,14 +25,18 @@ public class ServerConfig
     [JsonPropertyName("env")]
     public Dictionary<string, string>? EnvVars { get; set; }
 
-    // Para SSE
+    // Para SSE / StreamableHttp
     [JsonPropertyName("url")]
     public string? Url { get; set; }
 
-    public TransportType GetTransportType() =>
-        Transport.Equals("sse", StringComparison.OrdinalIgnoreCase)
-            ? TransportType.Sse
-            : TransportType.Stdio;
+    public TransportType GetTransportType()
+    {
+        if (Transport.Equals("sse", StringComparison.OrdinalIgnoreCase))
+            return TransportType.Sse;
+        if (Transport.Equals("streamableHttp", StringComparison.OrdinalIgnoreCase))
+            return TransportType.StreamableHttp;
+        return TransportType.Stdio;
+    }
 }
 
 public class McpConfig
