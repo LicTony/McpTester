@@ -52,24 +52,23 @@
 ```mermaid
 graph TD
     A[WPF App] --> B[Server Config Panel]
-    A --> C[Tool Explorer<br>+ Params]
+    A --> C[Tool Explorer + Params]
     A --> D[Result Viewer]
 
-    B --> E[McpConnectionService<br>(gestiona N conexiones a MCP servers)]
+    B --> E[McpConnectionService]
     C --> E
     D --> E
 
     E --> F[ModelContextProtocol SDK]
 
-    subgraph "ModelContextProtocol SDK"
+    subgraph SDK
         F --> G[stdio]
         F --> H[SSE / HTTP]
     end
 
-    G --> I[MCP Server A<br>(stdio)]
-    H --> J[MCP Server B<br>(SSE/HTTP)]
+    G --> I[MCP Server A - stdio]
+    H --> J[MCP Server B - SSE/HTTP]
 
-    %% Optional styling
     classDef app fill:#f9f9ff,stroke:#666,stroke-width:2px
     classDef service fill:#e6f3ff,stroke:#4477ff
     classDef sdk fill:#f0fff0,stroke:#228822
