@@ -49,7 +49,7 @@
     └──────────┘            └────────────┘
 ```
 
-
+```mermaid
 graph TD
     A[WPF App] --> B[Server Config Panel]
     A --> C[Tool Explorer<br>+ Params]
@@ -79,7 +79,7 @@ graph TD
     class E service
     class F sdk
     class I,J server
-
+```
 
 ---
 
