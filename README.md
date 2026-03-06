@@ -49,6 +49,38 @@
     └──────────┘            └────────────┘
 ```
 
+
+graph TD
+    A[WPF App] --> B[Server Config Panel]
+    A --> C[Tool Explorer<br>+ Params]
+    A --> D[Result Viewer]
+
+    B --> E[McpConnectionService<br>(gestiona N conexiones a MCP servers)]
+    C --> E
+    D --> E
+
+    E --> F[ModelContextProtocol SDK]
+
+    subgraph "ModelContextProtocol SDK"
+        F --> G[stdio]
+        F --> H[SSE / HTTP]
+    end
+
+    G --> I[MCP Server A<br>(stdio)]
+    H --> J[MCP Server B<br>(SSE/HTTP)]
+
+    %% Optional styling
+    classDef app fill:#f9f9ff,stroke:#666,stroke-width:2px
+    classDef service fill:#e6f3ff,stroke:#4477ff
+    classDef sdk fill:#f0fff0,stroke:#228822
+    classDef server fill:#fff0e6,stroke:#cc6600
+
+    class A app
+    class E service
+    class F sdk
+    class I,J server
+
+
 ---
 
 ## 🛠️ Stack tecnológico
